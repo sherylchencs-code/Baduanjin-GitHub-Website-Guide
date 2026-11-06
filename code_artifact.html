@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>摩斯密碼解題與學習器 - Morse Code Master</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        morse: {
+                            amber: '#f59e0b',
+                            glow: '#fbbf24',
+                            dark: '#0f172a',
+                            card: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                        sans: ['"Noto Sans TC"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Glowing & Signal Effects */
+        .signal-glow {
+            box-shadow: 0 0 25px #f59e0b, 0 0 50px #fbbf24;
+        }
+        .text-glow {
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+        }
+        .morse-char-active {
+            background-color: rgba(245, 158, 11, 0.25);
+            border-color: #f59e0b;
+            color: #fbbf24;
+            transform: scale(1.08);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col">
+
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-mono text-xl font-bold">
+                    •••
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                        摩斯密碼解題與學習器
+                        <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30 font-mono">v2.0</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">英文句子轉換 • 聲光模擬 • 互動解題練習</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="flex gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs sm:text-sm">
+                <button id="tab-translator" onclick="switchTab('translator')" class="px-3 sm:px-4 py-1.5 rounded-lg font-medium transition-all duration-200 bg-amber-500 text-slate-950 shadow-md">
+                    <i class="fa-solid fa-language mr-1"></i> 句子轉換與播放
+                </button>
+                <button id="tab-quiz" onclick="switchTab('quiz')" class="px-3 sm:px-4 py-1.5 rounded-lg font-medium transition-all duration-200 text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-gamepad mr-1"></i> 解題練習場
+                </button>
+                <button id="tab-chart" onclick="switchTab('chart')" class="px-3 sm:px-4 py-1.5 rounded-lg font-medium transition-all duration-200 text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-table-cells mr-1"></i> 碼錶對照表
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+
+        <!-- ================= SECTION 1: TRANSLATOR & PLAYER ================= -->
+        <section id="section-translator" class="space-y-6">
+            
+            <!-- Signal Light / Telegraph Display Panel -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+                <!-- Visual Flasher Lamp -->
+                <div class="flex items-center gap-5">
+                    <div class="relative flex items-center justify-center">
+                        <div id="signal-lamp-outer" class="w-20 h-20 rounded-full border-4 border-slate-700 bg-slate-950 flex items-center justify-center transition-all duration-75">
+                            <div id="signal-lamp-inner" class="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 transition-all duration-75 flex items-center justify-center">
+                                <i id="signal-icon" class="fa-solid fa-bolt text-slate-600 text-xl transition-all duration-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-xs font-semibold text-amber-500 uppercase tracking-widest mb-1">訊號電報燈 Signal Lamp</div>
+                        <h2 id="signal-status-text" class="text-xl font-mono font-bold text-slate-200">READY</h2>
+                        <p id="current-char-display" class="text-xs text-slate-400 font-mono mt-1">目前無播放訊號</p>
+                    </div>
+                </div>
+
+                <!-- Audio Controls (WPM, Frequency) -->
+                <div class="flex flex-wrap items-center gap-6 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 w-full md:w-auto">
+                    <!-- WPM Slider -->
+                    <div class="flex-1 min-w-[140px]">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400"><i class="fa-solid fa-gauge-high mr-1"></i> 語速 WPM</span>
+                            <span id="wpm-val" class="font-mono text-amber-400 font-bold">18</span>
+                        </div>
+                        <input id="wpm-slider" type="range" min="5" max="40" value="18" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500" oninput="updateWPM(this.value)">
+                    </div>
+
+                    <!-- Tone Pitch Slider -->
+                    <div class="flex-1 min-w-[140px]">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-400"><i class="fa-solid fa-wave-square mr-1"></i> 音調 Frequency</span>
+                            <span id="freq-val" class="font-mono text-amber-400 font-bold">600 Hz</span>
+                        </div>
+                        <input id="freq-slider" type="range" min="300" max="1000" step="10" value="600" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500" oninput="updateFreq(this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input & Output Dual Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- English Input Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <label for="english-input" class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-font text-amber-400"></i> 輸入英文句子 (English Sentence)
+                            </label>
+                            <button onclick="clearText()" class="text-xs text-slate-400 hover:text-slate-200 transition-colors">
+                                <i class="fa-solid fa-trash-can mr-1"></i> 清空
+                            </button>
+                        </div>
+                        <textarea id="english-input" rows="5" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-100 font-sans focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all resize-none text-base leading-relaxed placeholder-slate-600" placeholder="例如：SOS / MORSE CODE IS FUN / HELLO WORLD..." oninput="onEnglishInputChange()"></textarea>
+                    </div>
+                    <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-800/80 text-xs text-slate-500">
+                        <span id="char-count">字數: 0 字符</span>
+                        <div class="flex gap-2">
+                            <button onclick="presetSentence('SOS')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors">SOS</button>
+                            <button onclick="presetSentence('HELLO WORLD')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors">Hello World</button>
+                            <button onclick="presetSentence('THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors">Alphabet Sentence</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Morse Code Output Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-code text-amber-400"></i> 摩斯密碼解答 (Morse Code Output)
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <button onclick="copyMorseCode()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 px-3 py-1 rounded-lg transition-colors flex items-center gap-1">
+                                    <i class="fa-regular fa-copy"></i> 複製密碼
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Display Area with highlighting support -->
+                        <div id="morse-output-box" class="w-full min-h-[128px] max-h-[160px] bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-amber-400 text-lg leading-relaxed overflow-y-auto break-all tracking-widest selection:bg-amber-500 selection:text-slate-950">
+                            <span class="text-slate-600 text-sm font-sans">摩斯密碼解答將在此即時呈現...</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar (Play / Stop Controls) -->
+                    <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-800/80">
+                        <div class="text-xs text-slate-500">
+                            提示: 字母間空1格, 單詞間以 <span class="font-mono text-amber-400">/</span> 或空3格分隔
+                        </div>
+                        <div class="flex gap-3">
+                            <button id="btn-play" onclick="togglePlay()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/10 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i id="play-icon" class="fa-solid fa-play"></i>
+                                <span id="play-btn-text">播放摩斯密碼</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Break-down Analysis Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+                <h3 class="text-base font-bold text-slate-200 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-amber-400"></i> 逐字解答對照分解 (Letter-by-Letter Analysis)
+                </h3>
+                <div id="breakdown-container" class="flex flex-wrap gap-2.5 max-h-60 overflow-y-auto p-1">
+                    <div class="text-slate-500 text-sm italic">請在上方輸入英文句子以檢視詳細分解對照...</div>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ================= SECTION 2: QUIZ & PRACTICE ================= -->
+        <section id="section-quiz" class="hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-brain text-amber-400"></i> 摩斯密碼解密挑戰 (Practice Quiz)
+                        </h2>
+                        <p class="text-sm text-slate-400 mt-1">聽音或看電報碼，解出正確的英文句子或單詞！</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-center">
+                            <div class="text-xs text-slate-500">得分 Score</div>
+                            <div id="quiz-score" class="text-xl font-mono font-bold text-amber-400">0</div>
+                        </div>
+                        <button onclick="generateQuizProblem()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-xl transition-colors">
+                            <i class="fa-solid fa-rotate mr-1"></i> 下一題
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Problem Display Card -->
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 mb-6 text-center relative overflow-hidden">
+                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">請解密以下摩斯密碼：</div>
+                    
+                    <div id="quiz-morse-display" class="font-mono text-2xl sm:text-3xl font-bold text-amber-400 tracking-widest my-4 break-all min-h-[48px]">
+                        ... - - - ...
+                    </div>
+
+                    <div class="flex justify-center gap-3 mt-4">
+                        <button onclick="playQuizMorse()" class="px-4 py-2 bg-amber-500/20 border border-amber-500/40 text-amber-400 hover:bg-amber-500/30 font-semibold rounded-xl text-sm transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-volume-high"></i> 播放題目音訊
+                        </button>
+                        <button onclick="toggleHint()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-sm transition-all">
+                            <i class="fa-regular fa-lightbulb text-amber-400 mr-1"></i> 提示
+                        </button>
+                    </div>
+
+                    <div id="quiz-hint-box" class="hidden mt-4 text-xs font-mono text-slate-400 bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                        提示: 該句包含 <span id="quiz-word-count" class="text-amber-400 font-bold">1</span> 個單詞，首字母為 <span id="quiz-first-letter" class="text-amber-400 font-bold">S</span>
+                    </div>
+                </div>
+
+                <!-- User Answer Input -->
+                <div class="space-y-4">
+                    <label for="quiz-user-input" class="block text-sm font-semibold text-slate-300">請輸入您的英文翻譯解答：</label>
+                    <div class="flex gap-3">
+                        <input type="text" id="quiz-user-input" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 font-mono focus:outline-none focus:border-amber-500/50 uppercase placeholder:normal-case" placeholder="輸入解密後的英文句子 (例如: SOS)..." onkeydown="if(event.key==='Enter') submitQuizAnswer()">
+                        <button onclick="submitQuizAnswer()" class="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition-all shadow-md">
+                            提交答案
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Result Message -->
+                <div id="quiz-result-msg" class="hidden mt-4 p-4 rounded-xl text-sm font-bold transition-all"></div>
+            </div>
+        </section>
+
+
+        <!-- ================= SECTION 3: CHEAT SHEET CHART ================= -->
+        <section id="section-chart" class="hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-book-open text-amber-400"></i> 摩斯密碼標準對照表 (Morse Code Reference Chart)
+                        </h2>
+                        <p class="text-sm text-slate-400 mt-1">點擊任意卡片即可單獨收聽該字母的摩斯音訊訊號。</p>
+                    </div>
+                </div>
+
+                <!-- Search/Filter Box -->
+                <div class="mb-6">
+                    <input type="text" id="chart-search" oninput="filterChart()" placeholder="搜尋字母或密碼 (例如: A 或 .-)..." class="w-full max-w-md bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-amber-500/50">
+                </div>
+
+                <!-- Alphabet Grid -->
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">英文字母 (Alphabet)</h3>
+                <div id="chart-grid-letters" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-8">
+                    <!-- Dynamic injection -->
+                </div>
+
+                <!-- Numbers Grid -->
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">數字 (Numbers)</h3>
+                <div id="chart-grid-numbers" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-8">
+                    <!-- Dynamic injection -->
+                </div>
+
+                <!-- Punctuation Grid -->
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">常用標點符號 (Punctuation)</h3>
+                <div id="chart-grid-punctuation" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <!-- Dynamic injection -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-900/40 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+            摩斯密碼句子解題呈現工具 &bull; 使用 Web Audio API 實現無延遲聲光訊號模擬
+        </div>
+    </footer>
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // Standard Morse Code Mapping Dictionary
+        const MORSE_MAP = {
+            'A': '.-',    'B': '-...',  'C': '-.-.',  'D': '-..',   'E': '.',
+            'F': '..-.',  'G': '--.',   'H': '....',  'I': '..',    'J': '.---',
+            'K': '-.-',   'L': '.-..',  'M': '--',    'N': '-.',    'O': '---',
+            'P': '.--.',  'Q': '--.-',  'R': '.-.',   'S': '...',   'T': '-',
+            'U': '..-',   'V': '...-',  'W': '.--',   'X': '-..-',  'Y': '-.--',
+            'Z': '--..',
+            '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....',
+            '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----',
+            '.': '.-.-.-', ',': '--..--', '?': '..--..', "'": '.----.', '!': '-.-.--',
+            '/': '-..-.', '(': '-.--.', ')': '-.--.-', '&': '.-...', ':': '---...',
+            ';': '-.-.-.', '=': '-...-', '+': '.-.-.', '-': '-....-', '_': '..--.-',
+            '"': '.-..-.', '$': '...-..-', '@': '.--.-.'
+        };
+
+        // Reverse Mapping (Morse to English)
+        const REVERSE_MORSE_MAP = {};
+        Object.keys(MORSE_MAP).forEach(key => {
+            REVERSE_MORSE_MAP[MORSE_MAP[key]] = key;
+        });
+
+        // Audio Context & Playback State
+        let audioCtx = null;
+        let isPlaying = false;
+        let playTimeoutIds = [];
+        let currentWPM = 18;
+        let currentFreq = 600;
+
+        // Quiz State
+        let currentQuizAnswer = "";
+        let quizScore = 0;
+        const PRESET_QUIZ_SENTENCES = [
+            "SOS",
+            "HELLO WORLD",
+            "MORSE CODE IS FUN",
+            "STAY SAFE",
+            "BE EXCELLENT TO EACH OTHER",
+            "KNOWLEDGE IS POWER",
+            "NEVER GIVE UP",
+            "GOOD LUCK"
+        ];
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Play a single continuous frequency beep for a specified duration in seconds
+        function playTone(duration, frequency, callback) {
+            initAudioContext();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.value = frequency;
+
+            // Smooth envelope to avoid clicking noises
+            const now = audioCtx.currentTime;
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.3, now + 0.005);
+            gain.gain.setValueAtTime(0.3, now + duration - 0.005);
+            gain.gain.linearRampToValueAtTime(0, now + duration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            // Light indicator animation toggle
+            setSignalLampState(true);
+
+            osc.start(now);
+            osc.stop(now + duration);
+
+            setTimeout(() => {
+                setSignalLampState(false);
+                if (callback) callback();
+            }, duration * 1000);
+        }
+
+        // Visual signal lamp control
+        function setSignalLampState(active) {
+            const lampOuter = document.getElementById('signal-lamp-outer');
+            const lampInner = document.getElementById('signal-lamp-inner');
+            const icon = document.getElementById('signal-icon');
+
+            if (active) {
+                lampOuter.classList.add('border-amber-400', 'signal-glow', 'bg-amber-500/20');
+                lampInner.classList.add('bg-amber-400', 'border-amber-300');
+                icon.classList.add('text-slate-950', 'scale-125');
+                icon.classList.remove('text-slate-600');
+            } else {
+                lampOuter.classList.remove('border-amber-400', 'signal-glow', 'bg-amber-500/20');
+                lampInner.classList.remove('bg-amber-400', 'border-amber-300');
+                icon.classList.remove('text-slate-950', 'scale-125');
+                icon.classList.add('text-slate-600');
+            }
+        }
+
+        function textToMorse(text) {
+            const words = text.trim().toUpperCase().split(/\s+/);
+            return words.map(word => {
+                return word.split('').map(char => {
+                    return MORSE_MAP[char] || '?';
+                }).join(' ');
+            }).join(' / ');
+        }
+
+        function morseToText(morse) {
+            const words = morse.trim().split(/\s*[\/\|]\s*|\s{3,}/);
+            return words.map(word => {
+                const chars = word.trim().split(/\s+/);
+                return chars.map(c => REVERSE_MORSE_MAP[c] || '?').join('');
+            }).join(' ');
+        }
+
+        // Handle typing in main input
+        function onEnglishInputChange() {
+            const inputVal = document.getElementById('english-input').value;
+            const morseResult = textToMorse(inputVal);
+            
+            const outputBox = document.getElementById('morse-output-box');
+            if (inputVal.trim() === '') {
+                outputBox.innerHTML = `<span class="text-slate-600 text-sm font-sans">摩斯密碼解答將在此即時呈現...</span>`;
+            } else {
+                outputBox.innerText = morseResult;
+            }
+
+            document.getElementById('char-count').innerText = `字數: ${inputVal.length} 字符`;
+            updateBreakdown(inputVal);
+        }
+
+        // Render visual character breakdown card grid
+        function updateBreakdown(text) {
+            const container = document.getElementById('breakdown-container');
+            const cleanText = text.trim().toUpperCase();
+
+            if (!cleanText) {
+                container.innerHTML = `<div class="text-slate-500 text-sm italic">請在上方輸入英文句子以檢視詳細分解對照...</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            for (let i = 0; i < cleanText.length; i++) {
+                const char = cleanText[i];
+                const card = document.createElement('div');
+                card.id = `breakdown-char-${i}`;
+
+                if (char === ' ') {
+                    card.className = "flex flex-col items-center justify-center p-2 rounded-xl bg-slate-950 border border-slate-800/80 min-w-[50px]";
+                    card.innerHTML = `<span class="text-xs text-slate-600 font-mono">SPACE</span><span class="text-amber-500 font-bold font-mono">/</span>`;
+                } else {
+                    const code = MORSE_MAP[char] || '?';
+                    card.className = "flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-950 border border-slate-800 min-w-[55px] transition-all duration-150";
+                    card.innerHTML = `<span class="text-xs font-bold text-slate-300 font-mono">${char}</span><span class="text-amber-400 font-bold font-mono text-sm tracking-wider mt-0.5">${code}</span>`;
+                }
+                container.appendChild(card);
+            }
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlayback();
+            } else {
+                const text = document.getElementById('english-input').value;
+                if (!text.trim()) return;
+                startMorsePlayback(text);
+            }
+        }
+
+        function startMorsePlayback(text) {
+            initAudioContext();
+            stopPlayback(); // Clear previous schedule
+
+            isPlaying = true;
+            updatePlayButtonUI(true);
+
+            // Calculate timing based on standard WPM Formula: 1 Unit = 1.2 / WPM seconds
+            const unitTime = 1.2 / currentWPM; 
+            const dotDuration = unitTime;
+            const dashDuration = unitTime * 3;
+            const intraSymbolPause = unitTime;
+            const charPause = unitTime * 3;
+            const wordPause = unitTime * 7;
+
+            const cleanText = text.trim().toUpperCase();
+            let currentTime = 0;
+
+            document.getElementById('signal-status-text').innerText = "TRANSMITTING...";
+            document.getElementById('signal-status-text').classList.add('text-amber-400');
+
+            for (let charIndex = 0; charIndex < cleanText.length; charIndex++) {
+                const char = cleanText[charIndex];
+
+                // Schedule element highlight callback
+                const charTimeIndex = currentTime;
+                const charCardId = `breakdown-char-${charIndex}`;
+                
+                const highlightTimeout = setTimeout(() => {
+                    // Reset previous highlights
+                    document.querySelectorAll('#breakdown-container > div').forEach(el => el.classList.remove('morse-char-active'));
+                    const el = document.getElementById(charCardId);
+                    if (el) el.classList.add('morse-char-active');
+
+                    document.getElementById('current-char-display').innerText = `正在播放字符: ${char === ' ' ? '[ 空格 ]' : char}`;
+                }, charTimeIndex * 1000);
+                playTimeoutIds.push(highlightTimeout);
+
+                if (char === ' ') {
+                    currentTime += wordPause;
+                    continue;
+                }
+
+                const morseCode = MORSE_MAP[char];
+                if (!morseCode) {
+                    currentTime += charPause;
+                    continue;
+                }
+
+                for (let symbolIndex = 0; symbolIndex < morseCode.length; symbolIndex++) {
+                    const symbol = morseCode[symbolIndex];
+                    const symbolDuration = (symbol === '.') ? dotDuration : dashDuration;
+
+                    const soundTimeout = setTimeout(() => {
+                        if (isPlaying) {
+                            playTone(symbolDuration, currentFreq);
+                        }
+                    }, currentTime * 1000);
+                    playTimeoutIds.push(soundTimeout);
+
+                    currentTime += symbolDuration + intraSymbolPause;
+                }
+
+                currentTime += (charPause - intraSymbolPause);
+            }
+
+            // Finish schedule
+            const finishTimeout = setTimeout(() => {
+                stopPlayback();
+            }, currentTime * 1000);
+            playTimeoutIds.push(finishTimeout);
+        }
+
+        function stopPlayback() {
+            isPlaying = false;
+            playTimeoutIds.forEach(id => clearTimeout(id));
+            playTimeoutIds = [];
+            setSignalLampState(false);
+            updatePlayButtonUI(false);
+
+            document.querySelectorAll('#breakdown-container > div').forEach(el => el.classList.remove('morse-char-active'));
+            document.getElementById('signal-status-text').innerText = "READY";
+            document.getElementById('signal-status-text').classList.remove('text-amber-400');
+            document.getElementById('current-char-display').innerText = "目前無播放訊號";
+        }
+
+        function updatePlayButtonUI(playing) {
+            const btnText = document.getElementById('play-btn-text');
+            const icon = document.getElementById('play-icon');
+            const btn = document.getElementById('btn-play');
+
+            if (playing) {
+                btnText.innerText = "停止播放";
+                icon.className = "fa-solid fa-square";
+                btn.className = "px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl shadow-lg shadow-rose-600/20 transition-all flex items-center gap-2 active:scale-95";
+            } else {
+                btnText.innerText = "播放摩斯密碼";
+                icon.className = "fa-solid fa-play";
+                btn.className = "px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/10 transition-all flex items-center gap-2 active:scale-95";
+            }
+        }
+
+        function updateWPM(val) {
+            currentWPM = parseInt(val);
+            document.getElementById('wpm-val').innerText = currentWPM;
+        }
+
+        function updateFreq(val) {
+            currentFreq = parseInt(val);
+            document.getElementById('freq-val').innerText = `${currentFreq} Hz`;
+        }
+
+        function presetSentence(str) {
+            document.getElementById('english-input').value = str;
+            onEnglishInputChange();
+        }
+
+        function clearText() {
+            document.getElementById('english-input').value = '';
+            onEnglishInputChange();
+            stopPlayback();
+        }
+
+        function copyMorseCode() {
+            const morseText = document.getElementById('morse-output-box').innerText;
+            if (!morseText || morseText.includes('即時呈現')) return;
+
+            // ExecCommand fallback
+            const tempInput = document.createElement('textarea');
+            tempInput.value = morseText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            // Toast feedback
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-5 right-5 bg-amber-500 text-slate-950 px-4 py-2 rounded-xl text-sm font-bold shadow-xl z-50 animate-bounce";
+            toast.innerHTML = `<i class="fa-solid fa-check mr-1"></i> 已複製摩斯密碼至剪貼簿！`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+
+        function generateQuizProblem() {
+            const randomIdx = Math.floor(Math.random() * PRESET_QUIZ_SENTENCES.length);
+            currentQuizAnswer = PRESET_QUIZ_SENTENCES[randomIdx];
+            
+            const morseProblem = textToMorse(currentQuizAnswer);
+            document.getElementById('quiz-morse-display').innerText = morseProblem;
+            document.getElementById('quiz-user-input').value = '';
+            
+            // Hide result msg and hint
+            document.getElementById('quiz-result-msg').className = "hidden";
+            document.getElementById('quiz-hint-box').classList.add('hidden');
+
+            // Setup Hint Data
+            const words = currentQuizAnswer.split(' ');
+            document.getElementById('quiz-word-count').innerText = words.length;
+            document.getElementById('quiz-first-letter').innerText = currentQuizAnswer[0];
+        }
+
+        function playQuizMorse() {
+            if (currentQuizAnswer) {
+                startMorsePlayback(currentQuizAnswer);
+            }
+        }
+
+        function toggleHint() {
+            const hintBox = document.getElementById('quiz-hint-box');
+            hintBox.classList.toggle('hidden');
+        }
+
+        function submitQuizAnswer() {
+            const userAns = document.getElementById('quiz-user-input').value.trim().toUpperCase();
+            const resultMsg = document.getElementById('quiz-result-msg');
+
+            if (!userAns) return;
+
+            if (userAns === currentQuizAnswer) {
+                quizScore += 10;
+                document.getElementById('quiz-score').innerText = quizScore;
+                
+                resultMsg.className = "p-4 rounded-xl text-sm font-bold bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 block";
+                resultMsg.innerHTML = `<i class="fa-solid fa-circle-check mr-2"></i> 答對了！太厲害了！解答即為：<span class="font-mono underline">${currentQuizAnswer}</span>`;
+            } else {
+                resultMsg.className = "p-4 rounded-xl text-sm font-bold bg-rose-500/20 border border-rose-500/40 text-rose-400 block";
+                resultMsg.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2"></i> 答案不正確，請再試一次！(提示：請檢查拼字)`;
+            }
+        }
+
+
+        function renderReferenceChart() {
+            const lettersContainer = document.getElementById('chart-grid-letters');
+            const numbersContainer = document.getElementById('chart-grid-numbers');
+            const punctContainer = document.getElementById('chart-grid-punctuation');
+
+            lettersContainer.innerHTML = '';
+            numbersContainer.innerHTML = '';
+            punctContainer.innerHTML = '';
+
+            Object.keys(MORSE_MAP).forEach(char => {
+                const code = MORSE_MAP[char];
+                const card = document.createElement('button');
+                card.onclick = () => playSingleCharMorse(char);
+                card.className = "chart-card bg-slate-950 hover:bg-slate-800/80 border border-slate-800 p-3 rounded-xl flex items-center justify-between text-left transition-all hover:scale-[1.02] group";
+                
+                card.innerHTML = `
+                    <div>
+                        <span class="text-base font-bold text-slate-100 font-mono group-hover:text-amber-400 transition-colors">${char}</span>
+                        <div class="text-xs font-mono text-amber-500 font-semibold tracking-wider mt-0.5">${code}</div>
+                    </div>
+                    <i class="fa-solid fa-volume-low text-slate-600 group-hover:text-amber-400 text-xs transition-colors"></i>
+                `;
+
+                if (/[A-Z]/.test(char)) {
+                    lettersContainer.appendChild(card);
+                } else if (/[0-9]/.test(char)) {
+                    numbersContainer.appendChild(card);
+                } else {
+                    punctContainer.appendChild(card);
+                }
+            });
+        }
+
+        function playSingleCharMorse(char) {
+            const morse = MORSE_MAP[char];
+            if (!morse) return;
+
+            initAudioContext();
+            const unitTime = 1.2 / currentWPM;
+            let offset = 0;
+
+            for (let i = 0; i < morse.length; i++) {
+                const sym = morse[i];
+                const dur = (sym === '.') ? unitTime : unitTime * 3;
+                
+                setTimeout(() => {
+                    playTone(dur, currentFreq);
+                }, offset * 1000);
+
+                offset += dur + unitTime;
+            }
+        }
+
+        function filterChart() {
+            const query = document.getElementById('chart-search').value.trim().toUpperCase();
+            const cards = document.querySelectorAll('.chart-card');
+
+            cards.forEach(card => {
+                const text = card.innerText.toUpperCase();
+                if (text.includes(query)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+
+        function switchTab(tab) {
+            const sections = ['translator', 'quiz', 'chart'];
+            sections.forEach(s => {
+                document.getElementById(`section-${s}`).classList.add('hidden');
+                const tabBtn = document.getElementById(`tab-${s}`);
+                tabBtn.className = "px-3 sm:px-4 py-1.5 rounded-lg font-medium transition-all duration-200 text-slate-400 hover:text-slate-200";
+            });
+
+            document.getElementById(`section-${tab}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            activeBtn.className = "px-3 sm:px-4 py-1.5 rounded-lg font-medium transition-all duration-200 bg-amber-500 text-slate-950 shadow-md";
+
+            if (tab === 'quiz' && !currentQuizAnswer) {
+                generateQuizProblem();
+            }
+        }
+
+
+        window.onload = function() {
+            renderReferenceChart();
+            presetSentence("MORSE CODE IS FUN");
+        };
+    </script>
+</body>
+</html>
