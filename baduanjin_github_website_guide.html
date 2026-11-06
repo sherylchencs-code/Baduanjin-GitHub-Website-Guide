@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>八段錦養生互動指南與 GitHub 建站教學</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=Sans-Serif&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        amber: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            800: '#92400e',
+                            900: '#78350f',
+                        },
+                        emerald: {
+                            700: '#047857',
+                            800: '#065f46',
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Noto Serif TC"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #fefae0 0%, #e9edc9 50%, #ccd5ae 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-stone-900 text-amber-100 shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i data-lucide="flower-2" class="w-7 h-7 text-amber-400"></i>
+                <span class="font-serif text-xl font-bold tracking-wider">八段錦養生館 × GitHub Pages 教學</span>
+            </div>
+            <nav class="flex space-x-2 sm:space-x-4">
+                <button onclick="switchTab('exercise')" id="tab-exercise" class="px-3 py-2 rounded-lg text-sm font-medium transition bg-amber-600 text-white flex items-center gap-1.5">
+                    <i data-lucide="activity" class="w-4 h-4"></i> 八段錦互動教學
+                </button>
+                <button onclick="switchTab('github')" id="tab-github" class="px-3 py-2 rounded-lg text-sm font-medium text-stone-300 hover:text-white hover:bg-stone-800 transition flex items-center gap-1.5">
+                    <i data-lucide="github" class="w-4 h-4"></i> 如何發佈到 GitHub
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- Tab 1: Baduanjin Exercise Interactive Section -->
+        <section id="section-exercise" class="space-y-8">
+            <!-- Hero Banner -->
+            <div class="gradient-bg rounded-2xl p-6 sm:p-10 border border-amber-200/60 card-shadow flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="space-y-4 max-w-2xl">
+                    <span class="bg-amber-800/10 text-amber-900 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">傳統氣功養生</span>
+                    <h1 class="text-3xl sm:text-4xl font-serif font-extrabold text-stone-900">八段錦互動式健身導覽</h1>
+                    <p class="text-stone-700 leading-relaxed text-base sm:text-lg">
+                        八段錦由八組獨立動作組成，招式簡單易學，注重意念與呼吸調節。請點擊上方或下方的卡片開始練習，搭配視覺引導與計時器維持身心健康。
+                    </p>
+                    <div class="pt-2 flex flex-wrap gap-3">
+                        <button onclick="openPracticeModal(0)" class="bg-amber-800 hover:bg-amber-900 text-white font-medium px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow">
+                            <i data-lucide="play-circle" class="w-5 h-5"></i> 開始全套引導練習
+                        </button>
+                        <a href="#movements-grid" class="bg-white hover:bg-stone-100 text-stone-800 border border-stone-300 font-medium px-5 py-2.5 rounded-xl transition flex items-center gap-2">
+                            瀏覽招式細節
+                        </a>
+                    </div>
+                </div>
+                <div class="w-full md:w-80 flex-shrink-0 bg-white/80 backdrop-blur rounded-xl p-4 border border-white card-shadow text-center">
+                    <div id="quick-svg-hero" class="w-full h-48 flex items-center justify-center">
+                        <!-- Dynamic SVG Graphic loaded by JS -->
+                    </div>
+                    <p class="text-xs text-stone-500 mt-2">點擊招式展開詳細肌肉動態與動作要領</p>
+                </div>
+            </div>
+
+            <!-- Movements Grid -->
+            <div id="movements-grid" class="scroll-mt-20">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-serif font-bold text-stone-900 flex items-center gap-2">
+                        <i data-lucide="list-checks" class="w-6 h-6 text-amber-700"></i> 八段錦完整八式
+                    </h2>
+                    <span class="text-xs sm:text-sm text-stone-500">點擊卡片看詳細圖解與功用</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="cards-container">
+                    <!-- Cards injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 2: GitHub Pages Deployment Guide Section -->
+        <section id="section-github" class="hidden space-y-8">
+            <div class="bg-stone-900 text-white rounded-2xl p-6 sm:p-10 card-shadow">
+                <div class="max-w-3xl space-y-4">
+                    <span class="bg-amber-500/20 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">零成本網站託管</span>
+                    <h1 class="text-3xl sm:text-4xl font-serif font-bold">如何使用 GitHub Pages 建立您的網頁</h1>
+                    <p class="text-stone-300 leading-relaxed text-base">
+                        這份八段錦互動網頁是一個「單一 HTML 檔案」的網站，非常適合發佈到 **GitHub Pages** 上！只要按照以下四個簡單步驟，就能獲得一個專屬的網址，分享給朋友一同運動。
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tutorial Steps -->
+            <div class="space-y-6">
+                <!-- Step 1 -->
+                <div class="bg-white rounded-xl p-6 border border-stone-200 card-shadow flex flex-col md:flex-row gap-6 items-start">
+                    <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 font-bold text-xl flex items-center justify-center flex-shrink-0">
+                        1
+                    </div>
+                    <div class="space-y-3 flex-1">
+                        <h3 class="text-xl font-bold text-stone-900 flex items-center gap-2">
+                            <i data-lucide="user-plus" class="w-5 h-5 text-amber-700"></i> 註冊與準備 GitHub 帳號
+                        </h3>
+                        <p class="text-stone-600">前往 <a href="https://github.com" target="_blank" class="text-amber-700 underline font-semibold">GitHub.com</a> 免費註冊一個帳號。如果已有帳號，直接登入即可。</p>
+                        <div class="bg-stone-50 p-4 rounded-lg border border-stone-200 text-sm text-stone-700">
+                            <strong>💡 提示：</strong> GitHub 提供免費的靜態網頁託管服務，網址格式通常為 <code>https://您的帳號.github.io/專案名稱</code>。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-white rounded-xl p-6 border border-stone-200 card-shadow flex flex-col md:flex-row gap-6 items-start">
+                    <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 font-bold text-xl flex items-center justify-center flex-shrink-0">
+                        2
+                    </div>
+                    <div class="space-y-3 flex-1">
+                        <h3 class="text-xl font-bold text-stone-900 flex items-center gap-2">
+                            <i data-lucide="folder-plus" class="w-5 h-5 text-amber-700"></i> 建立新的儲存庫 (Repository)
+                        </h3>
+                        <ol class="list-decimal list-inside space-y-2 text-stone-600">
+                            <li>登入後，點擊右上角的 <strong class="text-stone-900">「+」</strong> 按鈕，選擇 <strong class="text-stone-900">New repository</strong>。</li>
+                            <li>在 <strong>Repository name</strong> 輸入：<code>baduanjin-app</code>（或任意您喜愛的名稱）。</li>
+                            <li>將隱私權設定勾選為 <strong class="text-stone-900">Public</strong>（公開）。</li>
+                            <li>勾選 <strong class="text-stone-900">Add a README file</strong>。</li>
+                            <li>點擊最下方的 <strong class="bg-emerald-700 text-white px-3 py-1 rounded text-xs">Create repository</strong>。</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-white rounded-xl p-6 border border-stone-200 card-shadow flex flex-col md:flex-row gap-6 items-start">
+                    <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 font-bold text-xl flex items-center justify-center flex-shrink-0">
+                        3
+                    </div>
+                    <div class="space-y-3 flex-1">
+                        <h3 class="text-xl font-bold text-stone-900 flex items-center gap-2">
+                            <i data-lucide="file-up" class="w-5 h-5 text-amber-700"></i> 上傳專案程式碼
+                        </h3>
+                        <p class="text-stone-600">將您目前閱讀的這份 HTML 程式碼儲存為電腦中的 <code>index.html</code> 檔案。</p>
+                        <ol class="list-decimal list-inside space-y-2 text-stone-600">
+                            <li>在剛建立好的 Repository 頁面中，點擊右上方的 <strong class="text-stone-900">Add file</strong> ➔ <strong class="text-stone-900">Upload files</strong>。</li>
+                            <li>將電腦中的 <code>index.html</code> 檔案拖曳進去上傳。</li>
+                            <li>滑到下方，點擊綠色的 <strong class="bg-emerald-700 text-white px-3 py-1 rounded text-xs">Commit changes</strong> 按鈕。</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="bg-white rounded-xl p-6 border border-stone-200 card-shadow flex flex-col md:flex-row gap-6 items-start">
+                    <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 font-bold text-xl flex items-center justify-center flex-shrink-0">
+                        4
+                    </div>
+                    <div class="space-y-3 flex-1">
+                        <h3 class="text-xl font-bold text-stone-900 flex items-center gap-2">
+                            <i data-lucide="globe" class="w-5 h-5 text-amber-700"></i> 開啟 GitHub Pages 服務
+                        </h3>
+                        <ol class="list-decimal list-inside space-y-2 text-stone-600">
+                            <li>點擊 Repository 頁面上方的 <strong class="text-stone-900">Settings</strong>（設定）。</li>
+                            <li>在左側選單找到 <strong class="text-stone-900">Pages</strong>。</li>
+                            <li>在 <strong>Build and deployment</strong> 區塊下的 <strong>Branch</strong>，將 <code>None</code> 改選為 <code>main</code> (或 <code>master</code>)，資料夾保持 <code>/(root)</code>。</li>
+                            <li>點擊 <strong class="bg-stone-200 text-stone-800 px-3 py-1 rounded text-xs font-semibold">Save</strong>。</li>
+                            <li>等待約 1-3 分鐘後重新整理頁面，上方就會顯示您的網站專屬網址！🎉</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal for Detailed View & Interactive Practice -->
+    <div id="practice-modal" class="fixed inset-0 bg-stone-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto card-shadow flex flex-col">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-stone-200 flex items-center justify-between bg-stone-50 rounded-t-2xl">
+                <div>
+                    <span id="modal-step" class="text-xs font-bold text-amber-800 tracking-wider">招式 1 / 8</span>
+                    <h3 id="modal-title" class="text-2xl font-serif font-bold text-stone-900">雙手托天理三焦</h3>
+                </div>
+                <button onclick="closePracticeModal()" class="text-stone-400 hover:text-stone-600 p-2 rounded-lg transition">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 space-y-6 flex-1">
+                <!-- Visual SVG Vector Graphic -->
+                <div class="bg-amber-50/50 rounded-xl p-6 flex flex-col items-center justify-center border border-amber-100">
+                    <div id="modal-svg-container" class="w-full h-64 flex items-center justify-center">
+                        <!-- Interactive Animated SVG injected by JS -->
+                    </div>
+                    <div class="text-center mt-3 text-xs text-amber-900/70 font-medium">
+                        示意圖：呼吸吐納配合體態拉伸
+                    </div>
+                </div>
+
+                <!-- Key Benefits -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-xl bg-stone-50 border border-stone-200">
+                        <h4 class="font-bold text-stone-900 text-sm flex items-center gap-1.5 mb-1">
+                            <i data-lucide="heart-pulse" class="w-4 h-4 text-rose-600"></i> 養生功效
+                        </h4>
+                        <p id="modal-effect" class="text-sm text-stone-700">拉長脊椎、頸肩、胸廓，活動上肢與軀幹。</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-stone-50 border border-stone-200">
+                        <h4 class="font-bold text-stone-900 text-sm flex items-center gap-1.5 mb-1">
+                            <i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i> 動作重點
+                        </h4>
+                        <p id="modal-tip" class="text-sm text-stone-700">兩掌交疊上托，掌心朝上，感受軀幹徹底伸展。</p>
+                    </div>
+                </div>
+
+                <!-- Timer Control Box -->
+                <div class="bg-stone-900 text-white p-4 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i data-lucide="timer" class="w-6 h-6 text-amber-400"></i>
+                        <div>
+                            <div class="text-xs text-stone-400">建議練習時間</div>
+                            <div id="timer-display" class="text-xl font-bold font-mono">00:30</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="btn-timer-toggle" onclick="toggleTimer()" class="bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition flex items-center gap-1">
+                            <i data-lucide="play" class="w-4 h-4"></i> 開始倒數
+                        </button>
+                        <button onclick="resetTimer()" class="bg-stone-800 hover:bg-stone-700 text-stone-300 font-medium px-3 py-2 rounded-lg text-sm transition">
+                            重置
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer Navigation -->
+            <div class="p-4 border-t border-stone-200 bg-stone-50 rounded-b-2xl flex items-center justify-between">
+                <button onclick="prevMove()" id="btn-prev" class="px-4 py-2 border border-stone-300 rounded-lg text-sm font-medium text-stone-700 hover:bg-white transition flex items-center gap-1">
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i> 上一招
+                </button>
+                <button onclick="nextMove()" id="btn-next" class="px-4 py-2 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-sm font-medium transition flex items-center gap-1">
+                    下一招 <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-stone-400 text-xs text-center py-6 border-t border-stone-800">
+        <div class="max-w-7xl mx-auto px-4">
+            八段錦養生互動網頁範例 · 專為 GitHub Pages 部署設計 · 祝您身心健康
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Baduanjin Movements Master Data
+        const movements = [
+            {
+                id: 1,
+                name: "雙手托天理三焦",
+                effect: "拉長脊椎、頸肩、胸廓，活動上肢與軀幹。",
+                tip: "雙腳與肩同寬，雙手交叉從腹前上托至頭頂上方，掌心朝上，抬頭看手，隨後邊吐氣邊由兩側放開。",
+                keyArea: "上肢、胸廓與全脊椎",
+                duration: 30,
+                // Vector Graphic Representation (SVG String)
+                svg: `
+                <svg viewBox="0 0 200 200" class="w-full h-full max-h-56">
+                    <line x1="40" y1="180" x2="160" y2="180" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+                    <!-- Figure holding hands up -->
+                    <circle cx="100" cy="50" r="14" fill="#92400e"/>
+                    <path d="M100 64 L100 120 M100 120 L85 180 M100 120 L115 180" stroke="#92400e" stroke-width="8" stroke-linecap="round"/>
+                    <!-- Raised Arms -->
+                    <path d="M100 80 L70 50 L90 20 M100 80 L130 50 L110 20" stroke="#d97706" stroke-width="6" stroke-linecap="round" fill="none"/>
+                    <!-- Arrows pointing up -->
+                    <path d="M100 35 L100 10 M95 15 L100 10 L105 15" stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                </svg>`
+            },
+            {
+                id: 2,
+                name: "左右開弓似射鵰",
+                effect: "蹲馬步、伸展胸廓，活動肩背。",
+                tip: "跨大步呈馬步姿態，一手如拉弓、一手如挺指前瞄，頭隨開弓方向側轉，感受胸背部肌肉拉伸。",
+                keyArea: "大腿肌群、胸大肌、肩胛背肌",
+                duration: 40,
+                svg: `
+                <svg viewBox="0 0 200 200" class="w-full h-full max-h-56">
+                    <line x1="30" y1="180" x2="170" y2="180" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="100" cy="70" r="14" fill="#92400e"/>
+                    <!-- Horse Stance Body -->
+                    <path d="M100 84 L100 125 M100 125 L65 180 M100 125 L135 180" stroke="#92400e" stroke-width="8" stroke-linecap="round"/>
+                    <!-- Archer Arms -->
+                    <path d="M100 95 L50 95 L40 90 M100 95 L145 95" stroke="#d97706" stroke-width="6" stroke-linecap="round" fill="none"/>
+                    <path d="M40 80 L30 95 L40 110" stroke="#059669" stroke-width="3" fill="none" stroke-linecap="round"/>
+                </svg>`
+            },
+            {
+                id: 3,
+                name: "調理脾胃須單舉",
+                effect: "利用左右手交替上舉，增加軀幹活動，改善消化。",
+                tip: "一手掌心向上用力撐天，另一手掌心向下按地，兩手朝相反方向拉伸，隨後交替進行。",
+                keyArea: "腹部、內臟蠕動、腰側肌群",
+                duration: 35,
+                svg: `
+                <svg viewBox="0 0 200 200" class="w-full h-full max-h-56">
+                    <line x1="40" y1="180" x2="160" y2="180" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="100" cy="60" r="14" fill="#92400e"/>
+                    <path d="M100 74 L100 125 M100 125 L85 180 M100 125 L115 180" stroke="#92400e" stroke-width="8" stroke-linecap="round"/>
+                    <!-- Left Hand Up, Right Hand Down -->
+                    <path d="M100 90 L70 60 L70 25 M100 90 L130 110 L130 140" stroke="#d97706" stroke-width="6" stroke-linecap="round" fill="none"/>
+                    <!-- Opposite tension arrows -->
+                    <path d="M70 20 L70 10 M65 15 L70 10 L75 15" stroke="#059669" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <path d="M130 145 L130 155 M125 150 L130 155 L135 150" stroke="#059669" stroke-width="3" fill="none" stroke-linecap="round"/>
+                </svg>`
+            },
+            {
+                id: 4,
+                name: "五勞七傷往後瞧",
+                effect: "透過溫和轉頭與旋轉脊椎，暢通經絡。",
+                tip: "雙腳平行站立，雙手自然下垂或微向後張開，轉動頭頸慢慢看向後方，雙眼盡可能往後遠眺。",
+                keyArea: "頸椎、眼部肌肉、斜方肌",
+                duration: 30,
+                svg: `
+                <svg viewBox="0 0 200 200" class="w-full h-full max-h-56">
+                    <line x1="40" y1="180" x2="160" y2="180" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+                    <!-- Head looking back -->
+                    <circle cx="100" cy="60" r="14" fill="#92400e"/>
+                    <!-- Eye sight direction line -->
+                    <path d="M90 55 L55 45" stroke="#059669" stroke-width="3" stroke-dasharray="3,3" stroke-linecap="round"/>
+                    <path d="M100 74 L100 125 M100 125 L85 180 M100 125 L115 180" stroke="#92400e" stroke-width="8" stroke-linecap="round"/>
+                    <path d="M100 90 L75 120 M100 90 L125 120" stroke="#d97706" stroke-width="6" stroke-linecap="round"/>
+                </svg>`
+            },
+            {
+                id: 5,
+                name: "搖頭擺尾去心火",
+                effect: "協助清心火、調節身心（涉及軀幹活動，需量力而為）。",
+                tip: "寬馬步，雙手按於大腿上。頭與軀幹向前俯，隨後向一側搖頭擺尾繞環，放鬆腰髖部。",
+                keyArea: "髖關節、腰椎、核心肌肉",
+                duration: 45,
+                svg: `
+                <svg viewBox="0 0 200 200" class="w-full h-full max-h-56">
+                    <line x1="30" y1="180" x2="170" y2="180" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+                    <!-- Leaning Torso -->
+                    <circle cx="70" cy="90" r="14" fill="#92400e"/>
+                    <path d="M80 100 L110 125 M110 125 L65 180 M110 125 L145 180" stroke="#92400e" stroke-width="8" stroke-linecap="round"/>
+                    <!-- Hands on knees -->
+                    <path d="M85 105 L65 140 M105 115 L140 145" stroke="#d97706" stroke-width="6" stroke-linecap="round"/>
+                    <!-- Circular Motion Indicator -->
+                    <path d="M60 80 Q 90 60 120 80" stroke="#059669" stroke-width="3" fill="none" stroke-dasharray="4,4"/>
+                </svg>`
+            },
+            {
+                id: 6,
+                name: "兩手攀足固腎腰",
+                effect: "伸展腰部與下肢經絡。",
+                tip: "雙腿挺直，體前屈向下俯身，雙手沿腿後側下滑並觸碰腳面或腳趾，頭微昂，稍作停留。",
+                keyArea: "膕繩肌、腰背肌群、腎經",
+                duration: 40,
+                svg: `
+                <svg viewBox="0 0 200 200" class="w-full h-full max-h-56">
+                    <line x1="40" y1="180" x2="160" y2="180" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+                    <!-- Fully bent body -->
+                    <circle cx="115" cy="145" r="14" fill="#92400e"/>
+                    <path d="M90 180 L90 110 M105 180 L105 110" stroke="#92400e" stroke-width="8" stroke-linecap="round"/>
+                    <path d="M97 110 L115 135" stroke="#92400e" stroke-width="8" stroke-linecap="round"/>
+                    <!-- Hands touching feet -->
+                    <path d="M105 125 L100 170" stroke="#d97706" stroke-width="6" stroke-linecap="round"/>
+                </svg>`
+            },
+            {
+                id: 7,
+                name: "攢拳怒目增氣力",
+                effect: "配合握拳與瞪目，增強肌肉力量。",
+                tip: "馬步站立，兩手握拳抱於腰間。一手抱拳向前猛力怒衝，雙眼怒目睜大，感受全身張力。",
+                keyArea: "手臂前臂肌群、眼神專注、腿部力量",
+                duration: 30,
+                svg: `
+                <svg viewBox="0 0 200 200" class="w-full h-full max-h-56">
+                    <line x1="30" y1="180" x2="170" y2="180" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="100" cy="70" r="14" fill="#92400e"/>
+                    <path d="M100 84 L100 125 M100 125 L65 180 M100 125 L135 180" stroke="#92400e" stroke-width="8" stroke-linecap="round"/>
+                    <!-- Punching Arm -->
+                    <path d="M100 95 L50 95" stroke="#d97706" stroke-width="8" stroke-linecap="round"/>
+                    <!-- Fist circle -->
+                    <circle cx="45" cy="95" r="7" fill="#b45309"/>
+                </svg>`
+            },
+            {
+                id: 8,
+                name: "背後七顛百病消",
+                effect: "腳跟輕落地震動，達到提神與全身氣血流通。",
+                tip: "身體立正，雙腳併攏，用力提腳跟使身體上提，隨後放鬆讓腳跟輕輕落地，重複震動。",
+                keyArea: "小腿腓腸肌、平衡感、脊椎微震",
+                duration: 30,
+                svg: `
+                <svg viewBox="0 0 200 200" class="w-full h-full max-h-56">
+                    <line x1="40" y1="180" x2="160" y2="180" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+                    <!-- Tip-toe position -->
+                    <circle cx="100" cy="45" r="14" fill="#92400e"/>
+                    <path d="M100 59 L100 115 M100 115 L95 165 M100 115 L105 165" stroke="#92400e" stroke-width="8" stroke-linecap="round"/>
+                    <!-- Elevated feet gap -->
+                    <line x1="90" y1="170" x2="110" y2="170" stroke="#d97706" stroke-width="4"/>
+                    <!-- Vibration Lines -->
+                    <path d="M80 160 L75 165 M120 160 L125 165" stroke="#059669" stroke-width="3" stroke-linecap="round"/>
+                </svg>`
+            }
+        ];
+
+        // State Management
+        let currentMoveIndex = 0;
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let isTimerRunning = false;
+
+        // Initialize Page
+        window.onload = function () {
+            renderMoveCards();
+            document.getElementById('quick-svg-hero').innerHTML = movements[0].svg;
+            lucide.createIcons();
+        };
+
+        // Render Cards in Exercise Tab
+        function renderMoveCards() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = movements.map((m, index) => `
+                <div onclick="openPracticeModal(${index})" class="bg-white rounded-xl border border-stone-200 p-5 card-shadow hover:border-amber-500 hover:shadow-lg transition cursor-pointer flex flex-col justify-between group">
+                    <div>
+                        <div class="bg-amber-50 rounded-lg p-3 flex items-center justify-center mb-4 group-hover:scale-105 transition">
+                            ${m.svg}
+                        </div>
+                        <span class="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">第 ${m.id} 式</span>
+                        <h3 class="text-lg font-serif font-bold text-stone-900 mt-2 mb-1 group-hover:text-amber-800 transition">${m.name}</h3>
+                        <p class="text-xs text-stone-600 line-clamp-2">${m.effect}</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between text-xs font-medium text-amber-800">
+                        <span>展開教學導覽</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Switch Top Tabs
+        function switchTab(tab) {
+            const secExercise = document.getElementById('section-exercise');
+            const secGithub = document.getElementById('section-github');
+            const btnExercise = document.getElementById('tab-exercise');
+            const btnGithub = document.getElementById('tab-github');
+
+            if (tab === 'exercise') {
+                secExercise.classList.remove('hidden');
+                secGithub.classList.add('hidden');
+                btnExercise.className = "px-3 py-2 rounded-lg text-sm font-medium transition bg-amber-600 text-white flex items-center gap-1.5";
+                btnGithub.className = "px-3 py-2 rounded-lg text-sm font-medium text-stone-300 hover:text-white hover:bg-stone-800 transition flex items-center gap-1.5";
+            } else {
+                secExercise.classList.add('hidden');
+                secGithub.classList.remove('hidden');
+                btnGithub.className = "px-3 py-2 rounded-lg text-sm font-medium transition bg-amber-600 text-white flex items-center gap-1.5";
+                btnExercise.className = "px-3 py-2 rounded-lg text-sm font-medium text-stone-300 hover:text-white hover:bg-stone-800 transition flex items-center gap-1.5";
+            }
+        }
+
+        // Open Modal
+        function openPracticeModal(index) {
+            currentMoveIndex = index;
+            updateModalContent();
+            document.getElementById('practice-modal').classList.remove('hidden');
+        }
+
+        // Close Modal
+        function closePracticeModal() {
+            document.getElementById('practice-modal').classList.add('hidden');
+            resetTimer();
+        }
+
+        // Update Modal with Current Movement
+        function updateModalContent() {
+            const m = movements[currentMoveIndex];
+            document.getElementById('modal-step').innerText = `招式 ${m.id} / 8`;
+            document.getElementById('modal-title').innerText = m.name;
+            document.getElementById('modal-effect').innerText = m.effect;
+            document.getElementById('modal-tip').innerText = m.tip;
+            document.getElementById('modal-svg-container').innerHTML = m.svg;
+
+            // Timer reset
+            resetTimer();
+            timerSeconds = m.duration;
+            updateTimerDisplay();
+
+            // Prev/Next button states
+            document.getElementById('btn-prev').disabled = (currentMoveIndex === 0);
+            document.getElementById('btn-prev').classList.toggle('opacity-50', currentMoveIndex === 0);
+            document.getElementById('btn-next').disabled = (currentMoveIndex === movements.length - 1);
+            document.getElementById('btn-next').classList.toggle('opacity-50', currentMoveIndex === movements.length - 1);
+
+            lucide.createIcons();
+        }
+
+        function prevMove() {
+            if (currentMoveIndex > 0) {
+                currentMoveIndex--;
+                updateModalContent();
+            }
+        }
+
+        function nextMove() {
+            if (currentMoveIndex < movements.length - 1) {
+                currentMoveIndex++;
+                updateModalContent();
+            }
+        }
+
+        // Timer Logic
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer-toggle');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i> 繼續倒數`;
+            } else {
+                if (timerSeconds <= 0) timerSeconds = movements[currentMoveIndex].duration;
+                isTimerRunning = true;
+                btn.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i> 暫停`;
+                timerInterval = setInterval(() => {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                    if (timerSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        btn.innerHTML = `<i data-lucide="rotate-ccw" class="w-4 h-4"></i> 重新開始`;
+                    }
+                }, 1000);
+            }
+            lucide.createIcons();
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerSeconds = movements[currentMoveIndex].duration;
+            updateTimerDisplay();
+            const btn = document.getElementById('btn-timer-toggle');
+            if (btn) {
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i> 開始倒數`;
+                lucide.createIcons();
+            }
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const secs = (timerSeconds % 60).toString().padStart(2, '0');
+            const el = document.getElementById('timer-display');
+            if (el) el.innerText = `${mins}:${secs}`;
+        }
+    </script>
+</body>
+</html>
